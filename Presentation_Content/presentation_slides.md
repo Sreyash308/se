@@ -3,7 +3,8 @@
 > **Presentation Constraints:** Maximum 5 Slides | 10 Minutes Total | Cross-Questioning Defense Ready  
 > **Course:** Software Engineering (SE) Academic Project Evaluation  
 > **Presenter:** Harshit Raj (Lead Architect & Software Engineer)  
-> **Evaluation Window:** Starting November 25, 2026
+> **Evaluation Window:** Starting November 25, 2026  
+> **Live Google Slides Presentation:** [PlantCare AI Defense Deck (Google Slides)](https://docs.google.com/presentation/d/1-mHBvN4UA5JFN4JmOtypUKHt4lmsGVh2sp5lxoLh0eU/edit)
 
 ---
 
