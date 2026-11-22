@@ -2,10 +2,7 @@
 
 > **Live Google Slides Presentation:** [PlantCare AI Defense Deck (Google Slides)](https://docs.google.com/presentation/d/1-mHBvN4UA5JFN4JmOtypUKHt4lmsGVh2sp5lxoLh0eU/edit)  
 > **Exported PDF:** [PlantCare_AI_Defense.pdf](file:///C:/Users/hi/.gemini/antigravity/scratch/se/Presentation_Content/PlantCare_AI_Defense.pdf)  
-> **Presentation Constraints:** Maximum 5 Slides | 10 Minutes Total | Cross-Questioning Defense Ready  
-> **Course:** Software Engineering (SE) Academic Project Evaluation  
-> **Presenter:** Harshit Raj (Lead Architect & Software Engineer) | Roll: 2023-CS-0891  
-> **Evaluation Window:** Starting November 25, 2026
+> **Course:** Software Engineering (SE)
 
 ---
 
