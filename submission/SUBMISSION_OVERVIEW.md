@@ -47,7 +47,8 @@ This submission addresses every requirement outlined in the academic evaluation 
 ## 3. Key Contact Information
 
 - **Student Researcher:** Harshit Raj
-- **Project Repository:** `/Users/harshitraj/OpenSource/se`
+- **Project Repository:** `https://github.com/harshitraj1236/se`
 - **Documentation Master:** `README.md`
+- **System Architecture:** `ARCH.md`
 - **Requirements Specification:** `SRS.md`
 - **System Agent Instructions:** `AGENT.md`

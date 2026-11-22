@@ -199,6 +199,7 @@ The operational lifecycle proceeds through four deterministic stages:
 ```bash
 se/
 ├── README.md                          # Master GitHub documentation (this file)
+├── ARCH.md                            # Comprehensive System Architecture Specification
 ├── AGENT.md                           # Architectural context & engineering standards for AI agents
 ├── SRS.md                             # IEEE Std 830-1998 Software Requirements Specification
 ├── Presentation_Content/
@@ -216,35 +217,26 @@ se/
 
 ---
 
-## 10. Installation and Setup Instructions
+## 10. Quickstart & Evaluation Guide
 
-### Prerequisites
-- Python 3.10, 3.11, or 3.12
-- Git
-- Virtual Environment tool (`venv` or `conda`)
+### For University Reviewers & Academic Evaluators
+1. **Academic Project Report:** Review the comprehensive thesis in [`submission/Project_Report.md`](submission/Project_Report.md) covering Chapters 1 through 7, Front Matter, and IEEE References.
+2. **System Architecture Specification:** Read [`ARCH.md`](ARCH.md) and [`submission/Architecture_Diagrams/ARCHITECTURE.md`](submission/Architecture_Diagrams/ARCHITECTURE.md) for full subsystem specifications, component interactions, and computational complexity analysis.
+3. **Software Requirements Specification (SRS):** Inspect [`SRS.md`](SRS.md) for complete IEEE Std 830-1998 requirements and traceability matrix.
+4. **Presentation & Viva Defense:** Review [`Presentation_Content/presentation_slides.md`](Presentation_Content/presentation_slides.md) (strictly 5 slides max for the 10-minute presentation) and [`Presentation_Content/cross_questioning_defense.md`](Presentation_Content/cross_questioning_defense.md) for answers on Stop-Testing criteria, STT tools, and SE trade-offs.
 
-### Step-by-Step Installation
-
+### For Developers & Engineering Leads
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/plantcare-ai.git
-cd plantcare-ai
+git clone https://github.com/harshitraj1236/se.git
+cd se
 
-# 2. Initialize virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# 2. Review the AI Agent & Architecture Guidelines
+cat AGENT.md
+cat ARCH.md
 
-# 3. Upgrade package installer
-pip install --upgrade pip
-
-# 4. Install production & testing dependencies
-pip install -r requirements.txt
-
-# 5. Run the automated test suite to verify system integrity
-pytest -v --cov=app --cov-report=term-missing tests/
-
-# 6. Start the local development server
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+# 3. Explore API Contracts and Schemas
+# Refer to Section 12 below for complete JSON schemas for /diagnose, /medicines/nearby, and /medicines/reserve
 ```
 
 The interactive OpenAPI documentation will be accessible at:

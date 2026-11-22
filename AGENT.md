@@ -47,6 +47,7 @@ PlantCare AI is engineered to bridge the **last-mile agricultural disconnect**: 
 ```
 se/
 ├── README.md                          # Public GitHub technical overview & guide (20 sections)
+├── ARCH.md                            # Comprehensive System Architecture Specification
 ├── AGENT.md                           # This operational agent guide & architectural invariants
 ├── SRS.md                             # IEEE Std 830-1998 Software Requirements Specification
 ├── Presentation_Content/
