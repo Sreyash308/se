@@ -4,17 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PlantCare AI - Precision Crop Pathology & Hyperlocal Medicine Availability</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="/static/favicon-64.png">
+    <link rel="shortcut icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="/static/styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Leaflet.js Interactive Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 </head>
 <body>
     <!-- Top Header -->
     <header class="navbar">
         <div class="nav-container">
             <div class="brand">
-                <span class="brand-icon">🌱</span>
+                <span class="brand-icon"><img src="/static/favicon-64.png" alt="PlantCare AI logo" width="32" height="32" style="vertical-align: middle; filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.4));"></span>
                 <div>
                     <div class="brand-title">PlantCare AI</div>
                     <div class="brand-sub">Hyperlocal Precision Agricultural Logistics</div>
@@ -77,7 +82,7 @@
                     <div class="form-group">
                         <label>Or Upload Custom Foliar Image:</label>
                         <div class="upload-dropzone" id="dropzone">
-                            <input type="file" id="fileInput" accept="image/*" style="display:none;">
+                            <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none;">
                             <div class="dropzone-content">
                                 <span class="drop-icon">📷</span>
                                 <p>Drag & drop leaf photo here, or <strong>browse file</strong></p>
@@ -166,9 +171,12 @@
                             </div>
                         </div>
 
-                        <div class="action-footer">
-                            <button id="btnFindStoresForPrescription" class="btn btn-accent btn-block">
-                                📍 Locate In-Stock Agro-Dealers for Prescribed Remedies (Within 25 km)
+                        <div class="action-footer" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button id="btnFindStoresForPrescription" class="btn btn-accent flex-1">
+                                📍 Locate In-Stock Agro-Dealers (Within 25 km)
+                            </button>
+                            <button id="btnDownloadPrescriptionPdf" class="btn btn-outline" style="border-color: var(--primary); color: #34d399;">
+                                📄 Download Official Prescription Receipt
                             </button>
                         </div>
                     </div>
@@ -225,6 +233,24 @@
                 <button id="btnSearchStores" class="btn btn-primary" style="margin-top: 15px;">
                     ⚡ Execute Hyperlocal Geospatial Inventory Query
                 </button>
+            </div>
+
+            <!-- Interactive Geospatial Map Card -->
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header flex-between">
+                    <div>
+                        <h3>🗺️ Live Geospatial Routing Map</h3>
+                        <p class="subtitle">Visualizes farmer location, search boundary radius, and real-time dealer stock pins</p>
+                    </div>
+                    <div id="mapStatusBadge" class="badge badge-green">Ready</div>
+                </div>
+                <div id="leafletMap" style="height: 380px; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); overflow: hidden; background: #0b1120;"></div>
+                <div style="display: flex; gap: 16px; margin-top: 10px; font-size: 0.78rem; color: var(--text-secondary); flex-wrap: wrap;">
+                    <span>🔵 <strong>Farmer Coordinates</strong></span>
+                    <span>🟢 <strong>In Stock (&gt;10 units)</strong></span>
+                    <span>🟠 <strong>Low Stock (&le;10 units)</strong></span>
+                    <span>🔴 <strong>Out of Stock</strong></span>
+                </div>
             </div>
 
             <div class="card" style="margin-top: 20px;">
@@ -374,6 +400,12 @@
                             <div class="ticket-footer-note">
                                 ⚠️ If not claimed within 4 hours, held units automatically restock into store inventory to prevent retail holding lockouts.
                             </div>
+
+                            <div style="margin-top: 16px; text-align: center;">
+                                <button id="btnDownloadPickupPdf" class="btn btn-outline btn-block" style="border-color: #38bdf8; color: #38bdf8;">
+                                    📄 Download Official Pickup Receipt Slip (PDF)
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -485,6 +517,10 @@
         </div>
     </footer>
 
+    <!-- Leaflet.js Interactive Map Engine -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- jsPDF Engine for Instant PDF Prescription Slips -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="/static/app.js"></script>
 </body>
 </html>
