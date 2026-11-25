@@ -159,7 +159,16 @@ class TestDiagnosisAndSeverity:
             ("Grape", 18.0, "GRAPE_BLACK_ROT"),
             ("Rice", 0.0, "RICE_HEALTHY"),
             ("Rice Sheath Blight", 22.0, "RICE_SHEATH_BLIGHT"),
+            ("Rice Brown Spot", 18.0, "RICE_BROWN_SPOT"),
+            ("Rice Bacterial Blight", 25.0, "RICE_BACTERIAL_BLIGHT"),
+            ("Rice Tungro", 30.0, "RICE_TUNGRO"),
             ("Rice Blast", 15.0, "RICE_BLAST"),
+            ("Bell Pepper", 0.0, "BELL_PEPPER_HEALTHY"),
+            ("Bell Pepper", 16.0, "BELL_PEPPER_BACTERIAL_SPOT"),
+            ("Cotton", 0.0, "COTTON_HEALTHY"),
+            ("Cotton Curl Virus", 24.0, "COTTON_CURL_VIRUS"),
+            ("Cotton Fusarium Wilt", 32.0, "COTTON_FUSARIUM_WILT"),
+            ("Cotton", 20.0, "COTTON_BACTERIAL_BLIGHT"),
             ("Tomato Bacterial Spot", 20.0, "TOMATO_BACTERIAL_SPOT"),
             ("Tomato Late Blight", 35.0, "TOMATO_LATE_BLIGHT"),
             ("Tomato", 0.0, "TOMATO_HEALTHY"),
@@ -173,3 +182,31 @@ class TestDiagnosisAndSeverity:
         )
         assert pathology.disease_id == expected_id
         assert conf >= 0.70
+
+    def test_catalog_and_label_mapping_integrity(self):
+        """Verifies every vision label maps to a valid DISEASE_CATALOG entry and CIBRC medicines."""
+        from app.services.agronomic_database import MEDICINES_CATALOG
+
+        for label, catalog_key in diagnosis_service.PLANTVILLAGE_TO_CATALOG.items():
+            assert catalog_key in DISEASE_CATALOG, f"Unmapped key {catalog_key} for {label}"
+
+        for disease_id, pathology in DISEASE_CATALOG.items():
+            for med_id in pathology.chemical_medicine_ids + pathology.organic_medicine_ids:
+                assert med_id in MEDICINES_CATALOG, f"Missing medicine {med_id} in {disease_id}"
+            if "healthy" in pathology.common_name.lower():
+                assert len(pathology.chemical_medicine_ids) == 0
+
+    def test_onnx_model_and_crop_hint_aliases(self):
+        """Verifies trained 48-class ONNX model loads, fits <25MB, and handles crop hints."""
+        assert diagnosis_service.ONNX_MODEL_PATH.exists()
+        assert diagnosis_service.ONNX_MODEL_PATH.stat().st_size < 25 * 1024 * 1024
+        assert len(diagnosis_service._class_labels) == 48
+
+        img = Image.new("RGB", (224, 224), color=(34, 139, 34))
+        for hint, expected_crop in [("all", None), ("Paddy", CropType.RICE), ("Pepper", CropType.BELL_PEPPER)]:
+            res = diagnosis_service.predict_with_onnx(img, crop_hint=hint)
+            assert res is not None
+            pathology, conf = res
+            assert 0.0 <= conf <= 1.0
+            if expected_crop is not None:
+                assert pathology.crop == expected_crop

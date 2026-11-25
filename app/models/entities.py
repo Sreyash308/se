@@ -19,6 +19,14 @@ class CropType(str, Enum):
     RICE = "Rice"
     BELL_PEPPER = "Bell Pepper"
     COTTON = "Cotton"
+    BLUEBERRY = "Blueberry"
+    CHERRY = "Cherry"
+    ORANGE = "Orange"
+    PEACH = "Peach"
+    RASPBERRY = "Raspberry"
+    SOYBEAN = "Soybean"
+    SQUASH = "Squash"
+    STRAWBERRY = "Strawberry"
 
 
 class SeverityGrade(str, Enum):
@@ -50,6 +58,7 @@ class PathogenType(str, Enum):
     VIRAL = "Plant Viral Complex"
     ABIOTIC = "Abiotic Nutritional Disorder"
     PHYSIOLOGICAL = "None / Healthy Tissue"
+    ARTHROPOD = "Foliar Mite / Arthropod Pest"
 
 
 class ReservationStatus(str, Enum):
