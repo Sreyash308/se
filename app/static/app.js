@@ -285,6 +285,10 @@ function initTabs() {
                     state.mapInstance.invalidateSize();
                 }, 100);
             }
+
+            if (window.innerWidth <= 900 && window.scrollY > 100) {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
         });
     });
 }
@@ -325,13 +329,72 @@ function initSampleSelector() {
     });
 }
 
+function scrollToElementOnMobile(el) {
+    if (!el || window.innerWidth > 900) return;
+    setTimeout(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+}
+
+function compressImageToBase64(file, maxDimension = 640, quality = 0.85) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("Failed to read image file"));
+        reader.onload = (event) => {
+            const rawDataUrl = event.target.result;
+            const img = new Image();
+            img.onerror = () => resolve({ dataUrl: rawDataUrl, compressed: false });
+            img.onload = () => {
+                let { width, height } = img;
+                if (width <= maxDimension && height <= maxDimension && file.size <= 350 * 1024) {
+                    resolve({ dataUrl: rawDataUrl, compressed: false });
+                    return;
+                }
+
+                if (width > height) {
+                    if (width > maxDimension) {
+                        height = Math.round((height * maxDimension) / width);
+                        width = maxDimension;
+                    }
+                } else if (height > maxDimension) {
+                    width = Math.round((width * maxDimension) / height);
+                    height = maxDimension;
+                }
+
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                if (!ctx) {
+                    resolve({ dataUrl: rawDataUrl, compressed: false });
+                    return;
+                }
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressedUrl = canvas.toDataURL("image/jpeg", quality);
+                resolve({ dataUrl: compressedUrl, compressed: true });
+            };
+            img.src = rawDataUrl;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
 function initUploadDropzone() {
     const dropzone = document.getElementById("dropzone");
     const fileInput = document.getElementById("fileInput");
+    const cameraInput = document.getElementById("cameraInput");
+    const btnOpenCamera = document.getElementById("btnOpenCamera");
+    const btnOpenGallery = document.getElementById("btnOpenGallery");
     const preview = document.getElementById("imagePreview");
     const previewInfo = document.getElementById("previewInfo");
 
     dropzone.addEventListener("click", () => fileInput.click());
+    if (btnOpenCamera && cameraInput) {
+        btnOpenCamera.addEventListener("click", () => cameraInput.click());
+    }
+    if (btnOpenGallery) {
+        btnOpenGallery.addEventListener("click", () => fileInput.click());
+    }
 
     dropzone.addEventListener("dragover", (e) => {
         e.preventDefault();
@@ -353,26 +416,43 @@ function initUploadDropzone() {
     fileInput.addEventListener("change", (e) => {
         if (e.target.files && e.target.files[0]) {
             handleFileUpload(e.target.files[0]);
+            e.target.value = "";
         }
     });
 
-    function handleFileUpload(file) {
+    if (cameraInput) {
+        cameraInput.addEventListener("change", (e) => {
+            if (e.target.files && e.target.files[0]) {
+                handleFileUpload(e.target.files[0]);
+                e.target.value = "";
+            }
+        });
+    }
+
+    async function handleFileUpload(file) {
         if (!file.type.startsWith("image/")) {
             alert("Please select a valid image file (.jpg, .png, .webp).");
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const b64 = event.target.result;
-            state.currentImageBase64 = b64;
-            preview.src = b64;
-            previewInfo.textContent = `Uploaded: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        previewInfo.textContent = "Optimizing leaf photo...";
+        try {
+            const { dataUrl, compressed } = await compressImageToBase64(file);
+            state.currentImageBase64 = dataUrl;
+            preview.src = dataUrl;
+
+            const approxKb = Math.round((dataUrl.length * 3) / 4 / 1024);
+            const origKb = (file.size / 1024).toFixed(0);
+            previewInfo.textContent = compressed
+                ? `Uploaded: ${file.name} (${approxKb} KB optimized from ${origKb} KB)`
+                : `Uploaded: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
 
             // Unset sample button highlights
             document.querySelectorAll(".sample-btn").forEach(b => b.classList.remove("active"));
-        };
-        reader.readAsDataURL(file);
+        } catch (err) {
+            alert(`Unable to process image: ${err.message}`);
+            previewInfo.textContent = "Image upload failed";
+        }
     }
 }
 
@@ -453,11 +533,11 @@ function renderDiagnosisResultsWithAnimation(data) {
     const meterCard = resBox.querySelector(".severity-meter-card");
     const actionsCard = resBox.querySelector(".actions-box");
     const treatGrid = resBox.querySelector(".treatment-grid");
-    const storeNavBtn = resBox.querySelector("#btnFindStoresForPrescription");
+    const actionFooter = resBox.querySelector(".action-footer");
     const severityBar = document.getElementById("resSeverityBar");
 
     // 1. Immediately hide all result sub-sections BEFORE revealing resBox so there is ZERO flashing
-    [diagHeader, meterCard, actionsCard, treatGrid, storeNavBtn].forEach(el => {
+    [diagHeader, meterCard, actionsCard, treatGrid, actionFooter].forEach(el => {
         if (el) {
             el.classList.remove("diag-section-reveal");
             el.classList.add("diag-section-hidden");
@@ -472,6 +552,7 @@ function renderDiagnosisResultsWithAnimation(data) {
     // 2. Hide placeholder and reveal result container (its children are hidden via diag-section-hidden)
     placeholder.classList.add("hidden");
     resBox.classList.remove("hidden");
+    scrollToElementOnMobile(document.getElementById("diagnosisResultCard"));
 
     // 3. Populate data into hidden elements
     document.getElementById("resCrop").textContent = data.crop;
@@ -559,15 +640,15 @@ function renderDiagnosisResultsWithAnimation(data) {
         }
     }, 850);
 
-    // Step 4: Reveal Dual Treatment Regimens & Store Locator Button
+    // Step 4: Reveal Dual Treatment Regimens & Store Locator / PDF Buttons
     setTimeout(() => {
         if (treatGrid) {
             treatGrid.classList.remove("diag-section-hidden");
             treatGrid.classList.add("diag-section-reveal");
         }
-        if (storeNavBtn) {
-            storeNavBtn.classList.remove("diag-section-hidden");
-            storeNavBtn.classList.add("diag-section-reveal");
+        if (actionFooter) {
+            actionFooter.classList.remove("diag-section-hidden");
+            actionFooter.classList.add("diag-section-reveal");
         }
     }, 1250);
 }
@@ -686,11 +767,12 @@ function initLeafletMap() {
     const initialLat = 28.6139;
     const initialLon = 77.2090;
 
-    // Create Leaflet map instance
+    // Create Leaflet map instance (disable scrollWheelZoom so page scrolling isn't hijacked)
     state.mapInstance = L.map("leafletMap", {
         center: [initialLat, initialLon],
         zoom: 11,
         zoomControl: true,
+        scrollWheelZoom: false,
     });
 
     // Free OpenStreetMap tile layer
@@ -778,10 +860,10 @@ function updateMapStoreMarkers(stores, farmerLat, farmerLon) {
                 "STR-002": [28.6420, 77.1850],
                 "STR-003": [28.5800, 77.2400],
                 "STR-004": [28.7041, 77.1025],
-                "STR-005": [28.5700, 77.3200],
+                "STR-005": [28.5355, 77.3910],
                 "STR-006": [28.4595, 77.0266],
-                "STR-007": [28.6692, 77.4538],
-                "STR-008": [28.9845, 77.7064],
+                "STR-007": [28.9845, 77.7064],
+                "STR-008": [28.8950, 77.0800],
             };
             if (knownCoords[s.store_id]) {
                 storeLat = knownCoords[s.store_id][0];
@@ -822,7 +904,7 @@ function updateMapStoreMarkers(stores, farmerLat, farmerLon) {
                     <div>Distance: ${s.distance_km.toFixed(1)} km (~${s.estimated_driving_time_minutes} min)</div>
                 </div>
                 <div class="map-popup-action">
-                    <button class="btn btn-xs btn-accent flex-1" onclick="selectStoreForHold('${s.store_id}', '${s.medicine_id}')">
+                    <button class="btn btn-xs btn-accent flex-1" onclick="selectStoreForHold('${s.store_id}', '${s.medicine_id}', ${s.price_inr})">
                         Reserve Hold
                     </button>
                     <a href="${googleMapsNavUrl}" target="_blank" class="btn btn-xs btn-outline" style="text-decoration:none; display:inline-flex; align-items:center;">
@@ -843,12 +925,13 @@ function updateMapStoreMarkers(stores, farmerLat, farmerLon) {
 }
 
 // Global hook for popup reserve action
-window.selectStoreForHold = function(storeId, medId) {
+window.selectStoreForHold = function(storeId, medId, priceInr = null) {
     document.querySelector(".tab-btn[data-tab='tab-reserve']").click();
     const storeSelect = document.getElementById("resSelectStore");
     const medSelect = document.getElementById("resSelectMed");
     if (storeSelect) storeSelect.value = storeId;
     if (medSelect) medSelect.value = medId;
+    state.selectedReservePrice = typeof priceInr === "number" ? priceInr : null;
     updateReservationPriceSummary();
 };
 
@@ -873,23 +956,25 @@ function renderStoreResults(stores) {
     stores.forEach(s => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td>
+            <td data-label="Store">
                 <div style="font-weight:700; color:var(--text-primary);">${s.store_name}</div>
                 <div class="text-muted" style="font-size:0.75rem; margin-top:2px;">📍 ${s.store_address} • 📞 ${s.store_phone}</div>
             </td>
-            <td><strong style="color:var(--secondary);">${s.distance_km.toFixed(1)} km</strong></td>
-            <td><span style="color:var(--text-secondary);">~${s.estimated_driving_time_minutes} min</span></td>
-            <td>
-                <span class="crop-tag">${s.medicine_id}</span>
-                <div style="font-size:0.8rem; margin-top:3px; color:var(--text-secondary);">${s.medicine_name}</div>
+            <td data-label="Distance"><strong style="color:var(--secondary);">${s.distance_km.toFixed(1)} km</strong></td>
+            <td data-label="Transit Time"><span style="color:var(--text-secondary);">~${s.estimated_driving_time_minutes} min</span></td>
+            <td data-label="Medicine">
+                <div>
+                    <span class="crop-tag">${s.medicine_id}</span>
+                    <div style="font-size:0.8rem; margin-top:3px; color:var(--text-secondary);">${s.medicine_name}</div>
+                </div>
             </td>
-            <td>
+            <td data-label="Verified Stock">
                 <span class="badge ${s.stock_quantity > 10 ? 'badge-green' : 'badge-orange'}">
                     ✓ ${s.stock_quantity} Available (${s.unit_type})
                 </span>
             </td>
-            <td><strong style="color:var(--text-primary); font-size:0.95rem;">₹${s.price_inr.toFixed(2)}</strong></td>
-            <td>
+            <td data-label="Price (INR)"><strong style="color:var(--text-primary); font-size:0.95rem;">₹${s.price_inr.toFixed(2)}</strong></td>
+            <td data-label="Action">
                 <button class="btn btn-xs btn-accent btn-quick-reserve"
                         data-store-id="${s.store_id}"
                         data-med-id="${s.medicine_id}"
@@ -906,6 +991,7 @@ function renderStoreResults(stores) {
         btn.addEventListener("click", () => {
             const storeId = btn.getAttribute("data-store-id");
             const medId = btn.getAttribute("data-med-id");
+            const price = parseFloat(btn.getAttribute("data-price"));
 
             // Switch to reservation tab
             document.querySelector(".tab-btn[data-tab='tab-reserve']").click();
@@ -915,6 +1001,7 @@ function renderStoreResults(stores) {
 
             if (storeSelect) storeSelect.value = storeId;
             if (medSelect) medSelect.value = medId;
+            state.selectedReservePrice = Number.isFinite(price) ? price : null;
 
             updateReservationPriceSummary();
         });
@@ -929,9 +1016,19 @@ function initReservationForm() {
     const form = document.getElementById("reservationForm");
     const qtyInput = document.getElementById("resQuantity");
     const medSelect = document.getElementById("resSelectMed");
+    const storeSelect = document.getElementById("resSelectStore");
 
     qtyInput.addEventListener("input", updateReservationPriceSummary);
-    medSelect.addEventListener("change", updateReservationPriceSummary);
+    medSelect.addEventListener("change", () => {
+        state.selectedReservePrice = null;
+        updateReservationPriceSummary();
+    });
+    if (storeSelect) {
+        storeSelect.addEventListener("change", () => {
+            state.selectedReservePrice = null;
+            updateReservationPriceSummary();
+        });
+    }
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -975,12 +1072,15 @@ function initReservationForm() {
 function updateReservationPriceSummary() {
     const qty = parseInt(document.getElementById("resQuantity").value, 10) || 1;
     const medSelect = document.getElementById("resSelectMed");
-    const selectedText = medSelect.options[medSelect.selectedIndex].text;
+    const selectedOption = medSelect.options[medSelect.selectedIndex];
+    const selectedText = selectedOption ? selectedOption.text : "";
 
-    let pricePerUnit = 320.0;
-    const match = selectedText.match(/₹([\d.]+)/);
-    if (match) {
-        pricePerUnit = parseFloat(match[1]);
+    let pricePerUnit = typeof state.selectedReservePrice === "number" ? state.selectedReservePrice : 320.0;
+    if (typeof state.selectedReservePrice !== "number") {
+        const match = selectedText.match(/₹([\d.]+)/);
+        if (match) {
+            pricePerUnit = parseFloat(match[1]);
+        }
     }
 
     const total = qty * pricePerUnit;
@@ -992,6 +1092,7 @@ function renderReservationTicket(data) {
     document.getElementById("tokenPlaceholder").classList.add("hidden");
     const tokenResult = document.getElementById("tokenResult");
     tokenResult.classList.remove("hidden");
+    scrollToElementOnMobile(tokenResult);
 
     document.getElementById("dispPickupCode").textContent = data.pickup_code;
     document.getElementById("dispResId").textContent = data.reservation_id;
