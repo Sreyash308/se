@@ -34,41 +34,65 @@ class DiagnosisService:
     ONNX_MODEL_PATH = Path("app/models/weights/plantcare_model.onnx")
     CLASS_LABELS_PATH = Path("app/models/weights/class_labels.json")
 
-    # Mapping PlantVillage 38 classes to CIBRC disease catalog
+    # Mapping 48 Canonical Vision Classes to CIBRC disease catalog
     PLANTVILLAGE_TO_CATALOG = {
-        # Tomato
+        # Tomato (10)
         "Tomato with Early Blight": "TOMATO_EARLY_BLIGHT",
         "Tomato with Late Blight": "TOMATO_LATE_BLIGHT",
         "Tomato with Bacterial Spot": "TOMATO_BACTERIAL_SPOT",
         "Healthy Tomato Plant": "TOMATO_HEALTHY",
-        "Tomato with Leaf Mold": "TOMATO_EARLY_BLIGHT",
-        "Tomato with Septoria Leaf Spot": "TOMATO_EARLY_BLIGHT",
-        "Tomato with Target Spot": "TOMATO_EARLY_BLIGHT",
-        "Tomato Yellow Leaf Curl Virus": "TOMATO_EARLY_BLIGHT",
-        "Tomato Mosaic Virus": "TOMATO_EARLY_BLIGHT",
-        # Potato
+        "Tomato with Leaf Mold": "TOMATO_LEAF_MOLD",
+        "Tomato with Septoria Leaf Spot": "TOMATO_SEPTORIA_LEAF_SPOT",
+        "Tomato with Spider Mites or Two-spotted Spider Mite": "TOMATO_SPIDER_MITES",
+        "Tomato with Target Spot": "TOMATO_TARGET_SPOT",
+        "Tomato Yellow Leaf Curl Virus": "TOMATO_YELLOW_LEAF_CURL_VIRUS",
+        "Tomato Mosaic Virus": "TOMATO_MOSAIC_VIRUS",
+        # Potato (3)
         "Potato with Early Blight": "POTATO_EARLY_BLIGHT",
         "Potato with Late Blight": "POTATO_LATE_BLIGHT",
         "Healthy Potato Plant": "POTATO_HEALTHY",
-        # Corn
+        # Corn (4)
         "Corn (Maize) with Common Rust": "CORN_COMMON_RUST",
         "Corn (Maize) with Northern Leaf Blight": "CORN_NORTHERN_BLIGHT",
-        "Corn (Maize) with Cercospora and Gray Leaf Spot": "CORN_NORTHERN_BLIGHT",
+        "Corn (Maize) with Cercospora and Gray Leaf Spot": "CORN_GRAY_LEAF_SPOT",
         "Healthy Corn (Maize) Plant": "CORN_HEALTHY",
-        # Apple
+        # Apple (4)
         "Apple Scab": "APPLE_SCAB",
-        "Apple with Black Rot": "APPLE_SCAB",
-        "Cedar Apple Rust": "APPLE_SCAB",
+        "Apple with Black Rot": "APPLE_BLACK_ROT",
+        "Cedar Apple Rust": "APPLE_CEDAR_RUST",
         "Healthy Apple": "APPLE_HEALTHY",
-        # Grape
+        # Grape (4)
         "Grape with Black Rot": "GRAPE_BLACK_ROT",
-        "Grape with Esca (Black Measles)": "GRAPE_BLACK_ROT",
-        "Grape with Isariopsis Leaf Spot": "GRAPE_BLACK_ROT",
+        "Grape with Esca (Black Measles)": "GRAPE_ESCA",
+        "Grape with Isariopsis Leaf Spot": "GRAPE_ISARIOPSIS_SPOT",
         "Healthy Grape Plant": "GRAPE_HEALTHY",
-        # Rice & General mappings
+        # Rice (6)
         "Rice Blast": "RICE_BLAST",
         "Rice with Sheath Blight": "RICE_SHEATH_BLIGHT",
-        "Healthy Rice": "RICE_HEALTHY"
+        "Rice with Brown Spot": "RICE_BROWN_SPOT",
+        "Rice with Bacterial Leaf Blight": "RICE_BACTERIAL_BLIGHT",
+        "Rice with Tungro": "RICE_TUNGRO",
+        "Healthy Rice": "RICE_HEALTHY",
+        # Bell Pepper (2)
+        "Bell Pepper with Bacterial Spot": "BELL_PEPPER_BACTERIAL_SPOT",
+        "Healthy Bell Pepper Plant": "BELL_PEPPER_HEALTHY",
+        # Cotton (4)
+        "Cotton with Bacterial Blight": "COTTON_BACTERIAL_BLIGHT",
+        "Cotton with Leaf Curl Virus": "COTTON_CURL_VIRUS",
+        "Cotton with Fusarium Wilt": "COTTON_FUSARIUM_WILT",
+        "Healthy Cotton Plant": "COTTON_HEALTHY",
+        # Additional PlantVillage Crops (11)
+        "Healthy Blueberry Plant": "BLUEBERRY_HEALTHY",
+        "Cherry with Powdery Mildew": "CHERRY_POWDERY_MILDEW",
+        "Healthy Cherry Plant": "CHERRY_HEALTHY",
+        "Orange with Citrus Greening": "ORANGE_CITRUS_GREENING",
+        "Peach with Bacterial Spot": "PEACH_BACTERIAL_SPOT",
+        "Healthy Peach Plant": "PEACH_HEALTHY",
+        "Healthy Raspberry Plant": "RASPBERRY_HEALTHY",
+        "Healthy Soybean Plant": "SOYBEAN_HEALTHY",
+        "Squash with Powdery Mildew": "SQUASH_POWDERY_MILDEW",
+        "Strawberry with Leaf Scorch": "STRAWBERRY_LEAF_SCORCH",
+        "Healthy Strawberry Plant": "STRAWBERRY_HEALTHY",
     }
 
     def __init__(self):
@@ -113,9 +137,13 @@ class DiagnosisService:
             probs = exp_logits / np.sum(exp_logits)
 
             crop_clean = (crop_hint or "").strip().lower()
+            if "paddy" in crop_clean:
+                crop_clean = "rice"
+            elif crop_clean == "pepper":
+                crop_clean = "bell pepper"
 
             # If user specified a crop, filter or prioritize classes matching that crop
-            if crop_clean and crop_clean != "all":
+            if crop_clean and crop_clean not in ("all", "auto", "auto-detect"):
                 # Find indices matching this crop
                 matching_indices = [
                     i for i, lbl in enumerate(self._class_labels)
@@ -299,9 +327,38 @@ class DiagnosisService:
             elif "sheath" in crop_clean:
                 pathology = DISEASE_CATALOG["RICE_SHEATH_BLIGHT"]
                 conf = 0.942
+            elif "brown" in crop_clean:
+                pathology = DISEASE_CATALOG["RICE_BROWN_SPOT"]
+                conf = 0.946
+            elif "bacterial" in crop_clean:
+                pathology = DISEASE_CATALOG["RICE_BACTERIAL_BLIGHT"]
+                conf = 0.944
+            elif "tungro" in crop_clean:
+                pathology = DISEASE_CATALOG["RICE_TUNGRO"]
+                conf = 0.941
             else:
                 pathology = DISEASE_CATALOG["RICE_BLAST"]
                 conf = 0.956
+        elif "pepper" in crop_clean:
+            if severity_pct is not None and severity_pct <= 0.0:
+                pathology = DISEASE_CATALOG["BELL_PEPPER_HEALTHY"]
+                conf = 0.982
+            else:
+                pathology = DISEASE_CATALOG["BELL_PEPPER_BACTERIAL_SPOT"]
+                conf = 0.948
+        elif "cotton" in crop_clean:
+            if severity_pct is not None and severity_pct <= 0.0:
+                pathology = DISEASE_CATALOG["COTTON_HEALTHY"]
+                conf = 0.981
+            elif "curl" in crop_clean:
+                pathology = DISEASE_CATALOG["COTTON_CURL_VIRUS"]
+                conf = 0.949
+            elif "wilt" in crop_clean or "fusarium" in crop_clean:
+                pathology = DISEASE_CATALOG["COTTON_FUSARIUM_WILT"]
+                conf = 0.945
+            else:
+                pathology = DISEASE_CATALOG["COTTON_BACTERIAL_BLIGHT"]
+                conf = 0.951
         else:
             # Default to Tomato
             if severity_pct is not None and severity_pct <= 0.0:
