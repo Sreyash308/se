@@ -82,12 +82,21 @@
                     <div class="form-group">
                         <label>Or Upload Custom Foliar Image:</label>
                         <div class="upload-dropzone" id="dropzone">
-                            <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none;">
+                            <input type="file" id="fileInput" accept="image/*" style="display:none;">
+                            <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
                             <div class="dropzone-content">
                                 <span class="drop-icon">📷</span>
                                 <p>Drag & drop leaf photo here, or <strong>browse file</strong></p>
-                                <span class="drop-hint">JPG, PNG, WebP (Max 10MB) • Normalized to 224x224x3 Tensor</span>
+                                <span class="drop-hint">JPG, PNG, WebP (Max 10MB) • Auto-optimized &amp; normalized to 224x224x3 Tensor</span>
                             </div>
+                        </div>
+                        <div class="upload-action-row">
+                            <button type="button" id="btnOpenCamera" class="btn btn-sm btn-outline upload-action-btn">
+                                📸 Take Leaf Photo
+                            </button>
+                            <button type="button" id="btnOpenGallery" class="btn btn-sm btn-outline upload-action-btn">
+                                🖼️ Choose from Gallery
+                            </button>
                         </div>
                     </div>
 
@@ -213,9 +222,14 @@
                             <option value="MED-CPX-50">Copper Oxychloride 50% WP (Bactericide)</option>
                             <option value="MED-AZX-23">Azoxystrobin 23% SC (Strobilurin)</option>
                             <option value="MED-HEX-05">Hexaconazole 5% SC (Systemic Triazole)</option>
+                            <option value="MED-STR-09">Streptomycin 9% + Tetracycline 1% SP (Bactericide)</option>
+                            <option value="MED-VAL-03">Validamycin 3% L (Sheath Blight Antibiotic)</option>
+                            <option value="MED-PRO-25">Propiconazole 25% EC (Systemic Triazole)</option>
                             <option value="MED-TRI-VIR">Trichoderma viride 1% WP (Bio-Control)</option>
                             <option value="MED-BAC-SUB">Bacillus subtilis 2% AS (Bio-Control)</option>
                             <option value="MED-AZA-10">Azadirachtin 10,000 PPM (Neem Extract)</option>
+                            <option value="MED-PSE-FLU">Pseudomonas fluorescens 1% WP (Bio-Bactericide)</option>
+                            <option value="MED-SUL-80">Wettable Sulphur 80% WDG (Miticide/Fungicide)</option>
                             <option value="MED-BIO-NIL">Prophylactic Bio-Stimulant Tonic</option>
                         </select>
                     </div>
@@ -244,7 +258,7 @@
                     </div>
                     <div id="mapStatusBadge" class="badge badge-green">Ready</div>
                 </div>
-                <div id="leafletMap" style="height: 380px; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); overflow: hidden; background: #0b1120;"></div>
+                <div id="leafletMap" class="leaflet-map-box"></div>
                 <div style="display: flex; gap: 16px; margin-top: 10px; font-size: 0.78rem; color: var(--text-secondary); flex-wrap: wrap;">
                     <span>🔵 <strong>Farmer Coordinates</strong></span>
                     <span>🟢 <strong>In Stock (&gt;10 units)</strong></span>
@@ -309,11 +323,13 @@
                             <label for="resSelectStore">Target Agro-Dealer Store:</label>
                             <select id="resSelectStore" class="form-control" required>
                                 <option value="STR-001">STR-001: Kisan Agro Kendra & Seed Depot (New Delhi)</option>
-                                <option value="STR-002">STR-002: GreenField Farm Inputs (Delhi)</option>
-                                <option value="STR-003">STR-003: Bharat Krishi Vikas Coop (Okhla)</option>
-                                <option value="STR-004">STR-004: Jai Kisan Pesticides (Narela)</option>
-                                <option value="STR-005">STR-005: Annapurna Agri-Service (Noida)</option>
-                                <option value="STR-006">STR-006: National Seeds Corp Hub (Gurugram)</option>
+                                <option value="STR-002">STR-002: GreenField Farm Inputs & Bio-Tech Centre (Delhi)</option>
+                                <option value="STR-003">STR-003: Bharat Krishi Vikas Cooperative Store (Okhla)</option>
+                                <option value="STR-004">STR-004: Jai Kisan Pesticides & Fertilizers (Narela)</option>
+                                <option value="STR-005">STR-005: Annapurna Agri-Service Center (Noida)</option>
+                                <option value="STR-006">STR-006: National Seeds Corporation Dealer Hub (Gurugram)</option>
+                                <option value="STR-007">STR-007: Royal Agro-Chemicals & Bio-Solutions (Meerut)</option>
+                                <option value="STR-008">STR-008: Progressive Farmers Input Syndicate (Sonipat)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -322,8 +338,17 @@
                                 <option value="MED-MCZ-75">MED-MCZ-75: Mancozeb 75% WP (₹320.00)</option>
                                 <option value="MED-MTX-MZ">MED-MTX-MZ: Metalaxyl + Mancozeb (₹450.00)</option>
                                 <option value="MED-CPX-50">MED-CPX-50: Copper Oxychloride 50% (₹395.00)</option>
+                                <option value="MED-AZX-23">MED-AZX-23: Azoxystrobin 23% SC (₹780.00)</option>
+                                <option value="MED-HEX-05">MED-HEX-05: Hexaconazole 5% SC (₹360.00)</option>
+                                <option value="MED-STR-09">MED-STR-09: Streptomycin + Tetracycline (₹95.00)</option>
+                                <option value="MED-VAL-03">MED-VAL-03: Validamycin 3% L (₹510.00)</option>
+                                <option value="MED-PRO-25">MED-PRO-25: Propiconazole 25% EC (₹490.00)</option>
                                 <option value="MED-TRI-VIR">MED-TRI-VIR: Trichoderma viride 1% (₹180.00)</option>
+                                <option value="MED-BAC-SUB">MED-BAC-SUB: Bacillus subtilis 2% AS (₹260.00)</option>
                                 <option value="MED-AZA-10">MED-AZA-10: Azadirachtin Neem (₹420.00)</option>
+                                <option value="MED-PSE-FLU">MED-PSE-FLU: Pseudomonas fluorescens 1% (₹190.00)</option>
+                                <option value="MED-SUL-80">MED-SUL-80: Wettable Sulphur 80% WDG (₹220.00)</option>
+                                <option value="MED-BIO-NIL">MED-BIO-NIL: Prophylactic Bio-Stimulant (₹290.00)</option>
                             </select>
                         </div>
                         <div class="form-row">

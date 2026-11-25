@@ -731,6 +731,8 @@ select.form-control option {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
     margin-bottom: 14px;
     padding-bottom: 8px;
     border-bottom: 1px solid var(--border-color);
@@ -1137,10 +1139,74 @@ select.form-control option {
     color: var(--primary);
 }
 
+/* Upload Camera & Gallery Action Buttons */
+.upload-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.upload-action-btn {
+    flex: 1 1 140px;
+    border-color: var(--border-highlight);
+    color: var(--text-primary);
+    background-color: var(--bg-input);
+}
+
+.upload-action-btn:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: #34d399;
+    background-color: rgba(16, 185, 129, 0.08);
+}
+
+/* Map Container & Table Scroll Wrapper */
+.leaflet-map-box {
+    position: relative;
+    z-index: 1;
+    isolation: isolate;
+    height: 380px;
+    width: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    background: #0b1120;
+}
+
+#storesTableContainer {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 820px) {
+    .nav-badges .badge {
+        display: none;
+    }
+
+    .tab-container {
+        scrollbar-width: none;
+    }
+
+    .tab-container::-webkit-scrollbar {
+        display: none;
+    }
+}
+
 /* ==========================================================================
    Mobile-Friendly Responsive Enhancements (Screen width <= 600px)
    ========================================================================== */
 @media (max-width: 600px) {
+    html, body {
+        overflow-x: clip;
+    }
+
+    /* Let brand header scroll naturally so sticky subnav never overlaps it */
+    .navbar {
+        position: relative;
+        z-index: 51;
+    }
+
     .nav-badges {
         display: none !important;
     }
@@ -1165,6 +1231,9 @@ select.form-control option {
         position: sticky;
         top: 0;
         z-index: 50;
+        background-color: rgba(15, 23, 42, 0.96);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
     }
 
     .tab-container {
@@ -1187,8 +1256,14 @@ select.form-control option {
 
     .btn {
         min-height: 44px;
-        padding: 12px 18px;
-        font-size: 0.95rem;
+        padding: 12px 16px;
+        font-size: 0.92rem;
+    }
+
+    .btn-xs {
+        min-height: 38px;
+        padding: 8px 12px;
+        font-size: 0.8rem;
     }
 
     .form-control {
@@ -1197,8 +1272,8 @@ select.form-control option {
     }
 
     .main-container {
-        margin: 16px auto;
-        padding: 0 14px;
+        margin: 14px auto;
+        padding: 0 12px;
     }
 
     .card {
@@ -1208,6 +1283,154 @@ select.form-control option {
     .form-row {
         flex-direction: column;
         gap: 12px;
+    }
+
+    /* Tab 1: Upload buttons, preview, diagnosis summary & footer */
+    .upload-dropzone {
+        padding: 16px;
+    }
+
+    .image-preview-container {
+        height: 205px;
+    }
+
+    .diag-header-summary {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .confidence-badge {
+        align-self: flex-start;
+        text-align: left;
+    }
+
+    .meter-labels {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .action-footer {
+        flex-direction: column;
+    }
+
+    .action-footer .btn {
+        width: 100%;
+    }
+
+    /* Tab 2: Map & Stacked Store Cards */
+    .leaflet-map-box {
+        height: 260px;
+    }
+
+    #btnSearchStores {
+        width: 100%;
+    }
+
+    .data-table thead {
+        display: none;
+    }
+
+    .data-table,
+    .data-table tbody,
+    .data-table tr,
+    .data-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .data-table tr {
+        background-color: var(--bg-surface-elevated);
+        border: 1px solid var(--border-highlight);
+        border-radius: var(--radius-md);
+        padding: 12px;
+        margin-bottom: 12px;
+    }
+
+    .data-table td {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 8px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        text-align: right;
+    }
+
+    .data-table td:first-child {
+        display: block;
+        text-align: left;
+        padding-top: 2px;
+        padding-bottom: 10px;
+    }
+
+    .data-table td:last-child {
+        border-bottom: none;
+        padding-bottom: 2px;
+        padding-top: 10px;
+    }
+
+    .data-table td[data-label]::before {
+        content: attr(data-label);
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        letter-spacing: 0.04em;
+        text-align: left;
+        flex-shrink: 0;
+    }
+
+    .data-table td:first-child[data-label]::before {
+        display: none;
+    }
+
+    .data-table td[colspan] {
+        display: block;
+        text-align: center;
+        border-bottom: none;
+    }
+
+    .data-table td:last-child .btn-quick-reserve {
+        width: 100%;
+    }
+
+    /* Tab 3: Pickup Ticket */
+    .ticket-card {
+        padding: 18px 16px;
+    }
+
+    .ticket-status-badge {
+        position: static;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
+
+    .pickup-code-display {
+        font-size: 1.75rem;
+    }
+
+    .ticket-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ticket-details-grid .span-2 {
+        grid-column: span 1;
+    }
+
+    /* Tab 4: POS Counter Form */
+    .pos-verify-form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .pos-verify-form .form-group {
+        margin-bottom: 0;
+    }
+
+    .btn-pos {
+        width: 100%;
+        height: auto;
     }
 }
 
